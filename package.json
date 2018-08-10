@@ -1,0 +1,18 @@
+{
+  "name": "hapi-app",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "node ./server.js",
+    "dev": "nodemon ./server.js"
+  },
+  "keywords": [],
+  "author": "Eisson Alipio <eisson.alipio@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "hapi": "^17.5.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.3"
+  }
+}
