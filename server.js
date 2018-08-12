@@ -88,9 +88,15 @@ const provision = async () => {
 };
 
 function newCardHandler(request, reply) {
-  if (request === 'GET') {
-    //
+  if (request === 'get') {
+    reply.view('new', {card_images: mapImages()})
+  } else {
+    // 
   }
+}
+
+function cardsHandler(request, reply) {
+  reply.view('cards', {cards: cards});
 }
 
 function loadCards() {
