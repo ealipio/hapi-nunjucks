@@ -1,27 +1,105 @@
+const Path = require('path');
 const Hapi = require('hapi');
+const Nunjucks = require('nunjucks')
+// const uuid = require('uuid');
+const Inert = require('inert');
+const fs = require('fs');
 
-// Create a server with a host and port
-const server = Hapi.server({
-  host: 'localhost',
-  port: 8000
+// const NunjucksHapi = require('nunjucks-hapi')
+const vision = require('vision')
+
+
+const server = new Hapi.Server({
+  port: 8000,
+  routes: {
+    files: {
+      relativeTo: Path.join(__dirname, 'public')
+    }
+  }
 });
 
-// Add the route
-server.route({
-  method: 'GET',
-  path: '/{name}',
-  handler: (request, h) => `Hello, ${encodeURIComponent(request.params.name)}!`
-});
+const provision = async () => {
 
-// tear up server
-const init = async () => {
+  await server.register(Inert);
+  await server.register(vision);
+
+  server.views({
+    engines: {
+      html: {
+        compile: (src, options) => {
+
+          const template = Nunjucks.compile(src, options.environment);
+
+          return (context) => {
+
+            return template.render(context);
+          };
+        },
+
+        prepare: (options, next) => {
+
+          options.compileOptions.environment = Nunjucks.configure(options.path, {
+            watch: false
+          });
+
+          return next();
+        }
+      }
+    },
+    relativeTo: __dirname,
+    path: 'templates/nunjucks'
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/assets/{param*}',
+    handler: {
+      directory: {
+        path: '.',
+        // redirectToSlash: true,
+        // index: true,
+        listing: false
+      }
+    }
+  });
+
+  server.route({
+    path: '/',
+    method: 'GET',
+     handler: {
+      file: './index.html'
+    }
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/nunjucks',
+    handler: (request, h) => {
+      return h.view('index', {
+        title: './templates/nunjucks | Hapi ' + request.server.version,
+        message: 'Hello Nunjucks!'
+      });
+    }
+  });
+
   await server.start();
-  console.log(`Server running at: ${server.info.uri}`);
+
+  console.log('Server running at:', server.info.uri);
 };
 
-process.on('unhandledRejection', (err) => {
-  console.log(err);
-  process.exit(1);
-});
+function newCardHandler(request, reply) {
+  if (request === 'GET') {
+    //
+  }
+}
 
-init();
+function loadCards() {
+  const file = fs.readFileSync('./cards.json');
+  return JSON.parse(file.toString());
+}
+
+function mapImages() {
+  return fs.readdirSync('./public/images/card')
+}
+
+provision();
